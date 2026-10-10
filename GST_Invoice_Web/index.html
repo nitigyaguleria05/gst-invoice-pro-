@@ -1,0 +1,1306 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>GST Invoice Pro — Automated GST Calculator & Invoicing</title>
+  <meta name="description" content="Automated GST calculator and professional invoice generator for Indian businesses. Instant calculation, A4 PDF generation, and customer billing." />
+
+  <!-- PWA Manifest & Mobile Icons (Android & iOS) -->
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/svg+xml" href="icon.svg" />
+  <link rel="apple-touch-icon" href="icon.svg" />
+  <meta name="theme-color" content="#2563eb" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="GST Invoice Pro" />
+  <meta name="mobile-web-app-capable" content="yes" />
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              200: '#bfdbfe',
+              300: '#93c5fd',
+              400: '#60a5fa',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a',
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- QRCode.js CDN for UPI QR code rendering -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <!-- html2pdf.js CDN for direct PDF downloads -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="h-full bg-slate-50 text-slate-800 antialiased flex flex-col md:flex-row overflow-hidden">
+
+  <!-- Mobile Header Backdrop -->
+  <div id="sidebar-backdrop" class="fixed inset-0 bg-slate-900/50 z-40 lg:hidden hidden"></div>
+
+  <!-- Left Sidebar Navigation -->
+  <aside id="app-sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 flex flex-col justify-between transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out lg:static lg:h-full">
+    <div>
+      <!-- Brand Logo / Name -->
+      <div class="h-16 px-6 border-b border-slate-100 flex items-center justify-between">
+        <div class="flex items-center space-x-3 cursor-pointer" data-nav-target="dashboard">
+          <div class="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-md shadow-blue-500/20 font-extrabold text-lg">
+            ₹
+          </div>
+          <div>
+            <h1 class="text-base font-bold text-slate-900 leading-none">GST Invoice Pro</h1>
+            <p class="text-[11px] text-slate-400 font-medium mt-1">Smart Indian Billing</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Links -->
+      <nav class="p-4 space-y-1 text-sm font-medium">
+        <a href="#dashboard" class="flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-blue-700 bg-blue-50 transition-colors" data-nav-target="dashboard">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="#calculator" class="flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors" data-nav-target="calculator">
+          <i data-lucide="calculator" class="w-4 h-4"></i>
+          <span>GST Calculator</span>
+        </a>
+        <a href="#create-invoice" class="flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors" data-nav-target="create-invoice">
+          <i data-lucide="file-plus" class="w-4 h-4"></i>
+          <span>Create Invoice</span>
+        </a>
+        <a href="#invoices" class="flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors" data-nav-target="invoices">
+          <i data-lucide="file-text" class="w-4 h-4"></i>
+          <span>Invoices</span>
+        </a>
+        <a href="#customers" class="flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors" data-nav-target="customers">
+          <i data-lucide="users" class="w-4 h-4"></i>
+          <span>Customers</span>
+        </a>
+        <a href="#settings" class="flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors" data-nav-target="settings">
+          <i data-lucide="settings" class="w-4 h-4"></i>
+          <span>Settings</span>
+        </a>
+      </nav>
+    </div>
+
+    <!-- Sidebar Footer / Quick Info -->
+    <div class="p-4 border-t border-slate-100 bg-slate-50/50">
+      <div class="rounded-xl bg-blue-600/5 border border-blue-600/10 p-3 mb-3">
+        <div class="flex items-center space-x-2 text-blue-700 text-xs font-semibold mb-1">
+          <i data-lucide="shield-check" class="w-4 h-4"></i>
+          <span>GST Ready 2026</span>
+        </div>
+        <p class="text-[11px] text-slate-500 leading-snug">CGST, SGST, IGST calculation & A4 Tax Invoice compliant.</p>
+      </div>
+
+      <button id="sidebar-install-btn" type="button" class="w-full mb-2 hidden items-center justify-center space-x-2 py-2 px-3 border border-blue-600 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold text-xs rounded-lg transition-all">
+        <i data-lucide="download-cloud" class="w-4 h-4"></i>
+        <span>Install App</span>
+      </button>
+
+      <button type="button" class="w-full action-create-invoice flex items-center justify-center space-x-2 py-2.5 px-3 bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs rounded-lg shadow-sm shadow-blue-500/20 transition-all">
+        <i data-lucide="plus" class="w-4 h-4"></i>
+        <span>New Invoice</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Content Layout -->
+  <div class="flex-1 flex flex-col h-full overflow-hidden">
+    
+    <!-- Top Bar -->
+    <header id="app-header" class="h-16 bg-white border-b border-slate-200 px-4 sm:px-6 flex items-center justify-between z-10">
+      <div class="flex items-center space-x-3">
+        <button id="mobile-menu-toggle" type="button" class="lg:hidden p-2 text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-100">
+          <i data-lucide="menu" class="w-5 h-5"></i>
+        </button>
+        <span class="text-sm font-semibold text-slate-700 hidden sm:inline-block">Indian Goods & Services Tax Billing</span>
+      </div>
+
+      <div class="flex items-center space-x-2 sm:space-x-3">
+        <button id="header-install-btn" type="button" class="hidden items-center px-3 py-1.5 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-colors">
+          <i data-lucide="download-cloud" class="w-3.5 h-3.5 mr-1.5 text-blue-600"></i>
+          <span>Install App</span>
+        </button>
+        <button type="button" class="action-open-calculator inline-flex items-center px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors">
+          <i data-lucide="calculator" class="w-3.5 h-3.5 mr-1.5 text-blue-600"></i>
+          <span>GST Calculator</span>
+        </button>
+        <button type="button" class="action-create-invoice inline-flex items-center px-3.5 py-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm shadow-blue-500/20 transition-colors">
+          <i data-lucide="plus" class="w-3.5 h-3.5 mr-1.5"></i>
+          <span>Create Invoice</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Scrollable View Container -->
+    <main id="app-views-container" class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 pb-24 lg:pb-8">
+      
+      <!-- ================================================================= -->
+      <!-- VIEW 1: DASHBOARD                                                 -->
+      <!-- ================================================================= -->
+      <section id="view-dashboard" class="app-view space-y-6">
+        <!-- Welcome banner -->
+        <div class="bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 rounded-2xl p-6 text-white shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div>
+            <span class="inline-block bg-white/20 backdrop-blur-sm text-white text-[11px] font-semibold px-2.5 py-0.5 rounded-full mb-2 uppercase tracking-wider">Business Overview</span>
+            <h2 class="text-xl sm:text-2xl font-bold">Welcome to GST Invoice Pro</h2>
+            <p class="text-blue-100 text-xs sm:text-sm mt-1">Manage your GST compliant invoicing, customer billing, and tax calculations with ease.</p>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <button type="button" class="action-create-invoice bg-white text-blue-700 hover:bg-blue-50 font-semibold text-xs px-4 py-2.5 rounded-xl shadow-sm transition-all flex items-center">
+              <i data-lucide="file-plus" class="w-4 h-4 mr-1.5"></i> Create Invoice
+            </button>
+            <button type="button" class="action-open-calculator bg-blue-800/70 hover:bg-blue-800 text-white font-semibold text-xs px-4 py-2.5 rounded-xl border border-white/20 transition-all flex items-center">
+              <i data-lucide="calculator" class="w-4 h-4 mr-1.5"></i> Quick Calculator
+            </button>
+          </div>
+        </div>
+
+        <!-- Metric KPI Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Total Sales -->
+          <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Sales</span>
+              <div class="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                <i data-lucide="trending-up" class="w-4 h-4"></i>
+              </div>
+            </div>
+            <div class="mt-3">
+              <div id="dash-total-sales" class="text-xl font-bold text-slate-900">₹0.00</div>
+              <p class="text-[11px] text-slate-500 mt-0.5">Total invoiced revenue</p>
+            </div>
+          </div>
+
+          <!-- Total GST Collected -->
+          <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">GST Collected</span>
+              <div class="w-9 h-9 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                <i data-lucide="receipt" class="w-4 h-4"></i>
+              </div>
+            </div>
+            <div class="mt-3">
+              <div id="dash-total-gst" class="text-xl font-bold text-slate-900">₹0.00</div>
+              <p class="text-[11px] text-slate-500 mt-0.5">CGST + SGST + IGST liability</p>
+            </div>
+          </div>
+
+          <!-- Pending Payments -->
+          <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Pending Payments</span>
+              <div class="w-9 h-9 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+                <i data-lucide="clock" class="w-4 h-4"></i>
+              </div>
+            </div>
+            <div class="mt-3">
+              <div id="dash-pending-payments" class="text-xl font-bold text-amber-600">₹0.00</div>
+              <p class="text-[11px] text-slate-500 mt-0.5">Awaiting customer clearance</p>
+            </div>
+          </div>
+
+          <!-- Paid Invoices -->
+          <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Paid Invoices</span>
+              <div class="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                <i data-lucide="check-circle" class="w-4 h-4"></i>
+              </div>
+            </div>
+            <div class="mt-3">
+              <div id="dash-paid-count" class="text-xl font-bold text-slate-900">0 / 0</div>
+              <p class="text-[11px] text-slate-500 mt-0.5">Settled invoices ratio</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions & Recent Invoices Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Quick Action Cards (1 col) -->
+          <div class="space-y-4">
+            <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Quick Actions</h3>
+
+            <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm hover:border-blue-400 cursor-pointer transition-all action-create-invoice flex items-center space-x-3">
+              <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center flex-shrink-0">
+                <i data-lucide="file-plus" class="w-5 h-5"></i>
+              </div>
+              <div class="flex-1">
+                <h4 class="font-semibold text-sm text-slate-900">Create Tax Invoice</h4>
+                <p class="text-xs text-slate-500">Generate A4 GST invoice with HSN breakdown</p>
+              </div>
+              <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
+            </div>
+
+            <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm hover:border-blue-400 cursor-pointer transition-all action-open-calculator flex items-center space-x-3">
+              <div class="w-10 h-10 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center flex-shrink-0">
+                <i data-lucide="calculator" class="w-5 h-5"></i>
+              </div>
+              <div class="flex-1">
+                <h4 class="font-semibold text-sm text-slate-900">GST Calculator</h4>
+                <p class="text-xs text-slate-500">Calculate tax exclusive & inclusive amounts</p>
+              </div>
+              <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
+            </div>
+
+            <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm hover:border-blue-400 cursor-pointer transition-all action-view-invoices flex items-center space-x-3">
+              <div class="w-10 h-10 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center flex-shrink-0">
+                <i data-lucide="file-text" class="w-5 h-5"></i>
+              </div>
+              <div class="flex-1">
+                <h4 class="font-semibold text-sm text-slate-900">Invoice History</h4>
+                <p class="text-xs text-slate-500">View, search, print and export past invoices</p>
+              </div>
+              <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
+            </div>
+          </div>
+
+          <!-- Recent Invoices Table (2 cols) -->
+          <div class="lg:col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm flex flex-col">
+            <div class="p-4 sm:px-6 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <h3 class="font-bold text-slate-900 text-sm">Recent Invoices</h3>
+                <p class="text-xs text-slate-400">Latest billing activity</p>
+              </div>
+              <button type="button" class="action-view-invoices text-xs font-semibold text-blue-600 hover:text-blue-800">
+                View All Invoices &rarr;
+              </button>
+            </div>
+            
+            <div class="overflow-x-auto flex-1">
+              <table class="w-full text-left">
+                <thead class="bg-slate-50 text-[11px] font-semibold uppercase text-slate-500 border-b border-slate-100">
+                  <tr>
+                    <th class="py-3 px-4">Invoice #</th>
+                    <th class="py-3 px-4">Customer</th>
+                    <th class="py-3 px-4">Date</th>
+                    <th class="py-3 px-4 text-right">Amount</th>
+                    <th class="py-3 px-4 text-center">Status</th>
+                    <th class="py-3 px-4 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="dash-recent-invoices-body" class="divide-y divide-slate-100">
+                  <!-- Injected via JavaScript -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- VIEW 2: GST CALCULATOR                                            -->
+      <!-- ================================================================= -->
+      <section id="view-calculator" class="app-view hidden space-y-6 max-w-5xl mx-auto">
+        <!-- Page Header -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <h2 class="text-xl font-bold text-slate-900">Instant GST Calculator</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Calculate Indian Goods & Services Tax in real-time with clear intra/inter-state breakdown.</p>
+          </div>
+          <div class="flex items-center space-x-2">
+            <button id="calc-copy-btn" type="button" class="inline-flex items-center px-3 py-1.5 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-lg shadow-sm">
+              <i data-lucide="copy" class="w-3.5 h-3.5 mr-1.5"></i> Copy Breakdown
+            </button>
+            <button id="calc-create-invoice-btn" type="button" class="inline-flex items-center px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-sm">
+              <i data-lucide="file-plus" class="w-3.5 h-3.5 mr-1.5"></i> Create Invoice With This
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <!-- Left Column: Inputs (7 cols) -->
+          <div class="lg:col-span-7 bg-white rounded-xl border border-slate-200 p-6 shadow-sm space-y-6">
+            
+            <!-- Amount Input -->
+            <div>
+              <label for="calc-amount" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                Amount (₹)
+              </label>
+              <div class="relative rounded-lg shadow-sm">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 font-bold text-base">
+                  ₹
+                </div>
+                <input 
+                  type="number" 
+                  id="calc-amount" 
+                  class="block w-full pl-8 pr-4 py-3 text-lg font-bold text-slate-900 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                  placeholder="10000" 
+                  value="10000" 
+                  min="0" 
+                  step="any"
+                />
+              </div>
+            </div>
+
+            <!-- Exclusive / Inclusive Toggle -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                Tax Mode
+              </label>
+              <div class="grid grid-cols-2 gap-3">
+                <label class="flex items-center justify-between p-3 border rounded-xl cursor-pointer hover:bg-slate-50 transition-colors">
+                  <div class="flex items-center space-x-2.5">
+                    <input type="radio" name="calc-type" value="exclusive" checked class="text-blue-600 focus:ring-blue-500" />
+                    <div>
+                      <span class="block text-xs font-bold text-slate-900">GST Exclusive</span>
+                      <span class="text-[11px] text-slate-500">Amount + GST</span>
+                    </div>
+                  </div>
+                  <i data-lucide="plus-circle" class="w-4 h-4 text-blue-600"></i>
+                </label>
+
+                <label class="flex items-center justify-between p-3 border rounded-xl cursor-pointer hover:bg-slate-50 transition-colors">
+                  <div class="flex items-center space-x-2.5">
+                    <input type="radio" name="calc-type" value="inclusive" class="text-blue-600 focus:ring-blue-500" />
+                    <div>
+                      <span class="block text-xs font-bold text-slate-900">GST Inclusive</span>
+                      <span class="text-[11px] text-slate-500">Amount includes GST</span>
+                    </div>
+                  </div>
+                  <i data-lucide="percent" class="w-4 h-4 text-indigo-600"></i>
+                </label>
+              </div>
+            </div>
+
+            <!-- GST Rates Selection -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                Select GST Rate
+              </label>
+              <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                <button type="button" class="calc-rate-btn py-2.5 px-3 text-xs font-bold rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors" data-rate="0">0%</button>
+                <button type="button" class="calc-rate-btn py-2.5 px-3 text-xs font-bold rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors" data-rate="5">5%</button>
+                <button type="button" class="calc-rate-btn py-2.5 px-3 text-xs font-bold rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors" data-rate="12">12%</button>
+                <button type="button" class="calc-rate-btn py-2.5 px-3 text-xs font-bold rounded-lg border border-blue-600 bg-blue-600 text-white shadow-sm transition-colors" data-rate="18">18%</button>
+                <button type="button" class="calc-rate-btn py-2.5 px-3 text-xs font-bold rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors" data-rate="28">28%</button>
+                <button type="button" class="calc-rate-btn py-2.5 px-3 text-xs font-bold rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors" data-rate="custom">Custom</button>
+              </div>
+
+              <!-- Custom Rate Input container (hidden by default) -->
+              <div id="calc-custom-rate-container" class="mt-3 hidden">
+                <label for="calc-custom-rate" class="block text-xs font-semibold text-slate-600 mb-1">Enter Custom GST Rate (%)</label>
+                <input type="number" id="calc-custom-rate" class="w-full text-sm font-semibold border border-slate-300 rounded-lg p-2 focus:ring-blue-500" placeholder="e.g. 3 or 7.5" step="0.01" min="0" value="18" />
+              </div>
+            </div>
+
+            <!-- Supply Type Selector -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                Supply Type
+              </label>
+              <div class="grid grid-cols-2 gap-3">
+                <label class="flex items-center p-3 border rounded-xl cursor-pointer hover:bg-slate-50 transition-colors">
+                  <input type="radio" name="calc-supply-type" value="intra" checked class="text-blue-600 focus:ring-blue-500 mr-2.5" />
+                  <div>
+                    <span class="block text-xs font-bold text-slate-900">Intra-State Transaction</span>
+                    <span class="text-[11px] text-slate-500">Within State &rarr; CGST + SGST (50/50)</span>
+                  </div>
+                </label>
+
+                <label class="flex items-center p-3 border rounded-xl cursor-pointer hover:bg-slate-50 transition-colors">
+                  <input type="radio" name="calc-supply-type" value="inter" class="text-blue-600 focus:ring-blue-500 mr-2.5" />
+                  <div>
+                    <span class="block text-xs font-bold text-slate-900">Inter-State Transaction</span>
+                    <span class="text-[11px] text-slate-500">Outside State &rarr; IGST (100%)</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <!-- Calculation Formula Explainer -->
+            <div class="bg-blue-50/60 rounded-xl p-4 border border-blue-100 text-xs">
+              <span class="font-bold text-blue-900 block mb-1 uppercase tracking-wider text-[10px]">Formula & Logic:</span>
+              <p id="calc-formula-text" class="text-slate-700 leading-relaxed">
+                <!-- Injected via JS -->
+              </p>
+            </div>
+
+          </div>
+
+          <!-- Right Column: Results & Slabs Comparison (5 cols) -->
+          <div class="lg:col-span-5 space-y-6">
+            
+            <!-- Result Breakdown Card -->
+            <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+              <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+                <h3 class="font-bold text-slate-900 text-sm">Calculation Summary</h3>
+                <span id="calc-rate-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-800">
+                  18%
+                </span>
+              </div>
+
+              <div class="space-y-3 text-xs">
+                <div class="flex justify-between items-center text-slate-600">
+                  <span>Taxable Base Value:</span>
+                  <span id="calc-taxable-display" class="font-semibold text-slate-900 text-sm">₹10,000.00</span>
+                </div>
+
+                <!-- Intra Breakdown -->
+                <div id="calc-intra-breakdown" class="space-y-2 bg-slate-50 p-3 rounded-lg border border-slate-100">
+                  <div class="flex justify-between items-center text-slate-700">
+                    <span>Central GST (CGST) <span id="calc-cgst-rate" class="text-slate-500">(9%)</span>:</span>
+                    <span id="calc-cgst-amount" class="font-semibold text-slate-900">₹900.00</span>
+                  </div>
+                  <div class="flex justify-between items-center text-slate-700">
+                    <span>State GST (SGST) <span id="calc-sgst-rate" class="text-slate-500">(9%)</span>:</span>
+                    <span id="calc-sgst-amount" class="font-semibold text-slate-900">₹900.00</span>
+                  </div>
+                </div>
+
+                <!-- Inter Breakdown -->
+                <div id="calc-inter-breakdown" class="hidden space-y-2 bg-slate-50 p-3 rounded-lg border border-slate-100">
+                  <div class="flex justify-between items-center text-slate-700">
+                    <span>Integrated GST (IGST) <span id="calc-igst-rate" class="text-slate-500">(18%)</span>:</span>
+                    <span id="calc-igst-amount" class="font-semibold text-slate-900">₹1,800.00</span>
+                  </div>
+                </div>
+
+                <div class="flex justify-between items-center text-blue-700 font-semibold border-t border-slate-100 pt-2">
+                  <span>Total GST Amount:</span>
+                  <span id="calc-total-gst-display" class="text-sm">₹1,800.00</span>
+                </div>
+
+                <!-- Grand Total Big Display -->
+                <div class="border-t-2 border-slate-900 pt-3 mt-2 flex justify-between items-center bg-blue-50/50 p-3 rounded-xl">
+                  <div>
+                    <span class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Grand Total</span>
+                    <span class="text-[10px] text-slate-500">(Taxable + GST)</span>
+                  </div>
+                  <span id="calc-grand-total-display" class="text-xl sm:text-2xl font-black text-blue-900">
+                    ₹11,800.00
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Slab Comparison Table -->
+            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+              <h4 class="font-bold text-slate-900 text-xs uppercase tracking-wider mb-3">All Slabs Comparison</h4>
+              <div class="overflow-x-auto">
+                <table class="w-full text-xs">
+                  <thead class="bg-slate-50 text-[10px] uppercase text-slate-500 font-semibold border-b border-slate-200">
+                    <tr>
+                      <th class="py-2 px-3 text-left">GST Slab</th>
+                      <th class="py-2 px-3 text-right">Taxable</th>
+                      <th class="py-2 px-3 text-right">GST</th>
+                      <th class="py-2 px-3 text-right">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody id="calc-comparison-body">
+                    <!-- Injected via JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- VIEW 3: CREATE / EDIT INVOICE                                     -->
+      <!-- ================================================================= -->
+      <section id="view-create-invoice" class="app-view hidden space-y-6 max-w-6xl mx-auto">
+        <!-- Header & Action Buttons -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-2 border-b border-slate-200">
+          <div>
+            <h2 id="invoice-editor-heading" class="text-xl font-bold text-slate-900">Create Tax Invoice</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Compliant with Indian GST Act & Rule 46 of CGST Rules.</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button id="reset-invoice-btn" type="button" class="px-3 py-1.5 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-lg shadow-sm">
+              Reset Form
+            </button>
+            <button id="preview-invoice-btn" type="button" class="px-3 py-1.5 border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold rounded-lg shadow-sm">
+              <i data-lucide="eye" class="w-3.5 h-3.5 inline mr-1"></i> Preview
+            </button>
+            <button id="print-invoice-btn" type="button" class="px-3 py-1.5 border border-slate-200 bg-white hover:bg-slate-50 text-slate-800 text-xs font-semibold rounded-lg shadow-sm">
+              <i data-lucide="printer" class="w-3.5 h-3.5 inline mr-1"></i> Print
+            </button>
+            <button id="download-pdf-btn" type="button" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-sm">
+              <i data-lucide="download" class="w-3.5 h-3.5 inline mr-1"></i> Download PDF
+            </button>
+            <button id="save-invoice-btn" type="button" class="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-sm">
+              <i data-lucide="save" class="w-3.5 h-3.5 inline mr-1"></i> Save Invoice
+            </button>
+          </div>
+        </div>
+
+        <form id="invoice-form" class="space-y-6" onsubmit="return false;">
+          
+          <!-- Card 1: Invoice Meta & Supply Configuration -->
+          <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 text-xs">
+              <!-- Invoice Number -->
+              <div>
+                <label for="inv-number" class="block font-bold text-slate-700 mb-1">Invoice Number *</label>
+                <input type="text" id="inv-number" class="w-full border border-slate-300 rounded-lg p-2 font-mono font-semibold text-slate-900 focus:ring-blue-500" required />
+              </div>
+
+              <!-- Invoice Date -->
+              <div>
+                <label for="inv-date" class="block font-bold text-slate-700 mb-1">Invoice Date *</label>
+                <input type="date" id="inv-date" class="w-full border border-slate-300 rounded-lg p-2 text-slate-900 focus:ring-blue-500" required />
+              </div>
+
+              <!-- Due Date -->
+              <div>
+                <label for="inv-due-date" class="block font-bold text-slate-700 mb-1">Due Date</label>
+                <input type="date" id="inv-due-date" class="w-full border border-slate-300 rounded-lg p-2 text-slate-900 focus:ring-blue-500" />
+              </div>
+
+              <!-- Place of Supply -->
+              <div>
+                <label for="inv-place-of-supply" class="block font-bold text-slate-700 mb-1">Place of Supply *</label>
+                <select id="inv-place-of-supply" class="w-full border border-slate-300 rounded-lg p-2 text-slate-900 bg-white focus:ring-blue-500">
+                  <!-- Populated via JS -->
+                </select>
+              </div>
+
+              <!-- Status -->
+              <div>
+                <label for="inv-status" class="block font-bold text-slate-700 mb-1">Payment Status</label>
+                <select id="inv-status" class="w-full border border-slate-300 rounded-lg p-2 text-slate-900 bg-white font-semibold">
+                  <option value="pending">Pending</option>
+                  <option value="paid">Paid</option>
+                  <option value="overdue">Overdue</option>
+                  <option value="draft">Draft</option>
+                </select>
+              </div>
+
+              <!-- Reverse Charge -->
+              <div>
+                <label for="inv-reverse-charge" class="block font-bold text-slate-700 mb-1">Reverse Charge (RCM)</label>
+                <select id="inv-reverse-charge" class="w-full border border-slate-300 rounded-lg p-2 text-slate-900 bg-white">
+                  <option value="No">No</option>
+                  <option value="Yes">Yes</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Supply Type Selector (Intra vs Inter) -->
+            <div class="mt-4 pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs">
+              <span class="font-bold text-slate-700">GST Supply Type:</span>
+              <div class="flex items-center space-x-4">
+                <label class="flex items-center space-x-1.5 cursor-pointer font-medium text-slate-800">
+                  <input type="radio" name="inv-supply-type" value="intra" checked class="text-blue-600 focus:ring-blue-500" />
+                  <span>Intra-State (CGST + SGST)</span>
+                </label>
+                <label class="flex items-center space-x-1.5 cursor-pointer font-medium text-slate-800">
+                  <input type="radio" name="inv-supply-type" value="inter" class="text-blue-600 focus:ring-blue-500" />
+                  <span>Inter-State (IGST)</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2: Customer / Buyer Details -->
+          <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-100 pb-3">
+              <h3 class="font-bold text-slate-900 text-sm flex items-center">
+                <i data-lucide="user-check" class="w-4 h-4 mr-2 text-blue-600"></i> Customer / Bill To Details
+              </h3>
+              <!-- Quick Select Customer -->
+              <div class="flex items-center space-x-2 text-xs">
+                <label for="inv-customer-select" class="text-slate-500 font-medium">Select Saved Customer:</label>
+                <select id="inv-customer-select" class="border border-slate-300 rounded-lg px-2.5 py-1 text-xs bg-white text-slate-800 focus:ring-blue-500">
+                  <!-- Populated via JS -->
+                </select>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
+              <div>
+                <label for="inv-cust-name" class="block font-semibold text-slate-700 mb-1">Customer / Contact Name *</label>
+                <input type="text" id="inv-cust-name" class="w-full border border-slate-300 rounded-lg p-2 text-slate-900 focus:ring-blue-500" placeholder="e.g. Rahul Sharma" required />
+              </div>
+
+              <div>
+                <label for="inv-cust-business" class="block font-semibold text-slate-700 mb-1">Business Name (Trade Name)</label>
+                <input type="text" id="inv-cust-business" class="w-full border border-slate-300 rounded-lg p-2 text-slate-900 focus:ring-blue-500" placeholder="e.g. Sharma Infotech" />
+              </div>
+
+              <div>
+                <label for="inv-cust-gstin" class="block font-semibold text-slate-700 mb-1">Customer GSTIN (15 Digits)</label>
+                <input type="text" id="inv-cust-gstin" maxlength="15" class="w-full border border-slate-300 rounded-lg p-2 font-mono uppercase text-slate-900 focus:ring-blue-500" placeholder="29ABCDE1234F1Z5" />
+              </div>
+
+              <div>
+                <label for="inv-cust-phone" class="block font-semibold text-slate-700 mb-1">Phone Number</label>
+                <input type="tel" id="inv-cust-phone" class="w-full border border-slate-300 rounded-lg p-2 text-slate-900 focus:ring-blue-500" placeholder="+91 98450 12345" />
+              </div>
+
+              <div>
+                <label for="inv-cust-email" class="block font-semibold text-slate-700 mb-1">Email Address</label>
+                <input type="email" id="inv-cust-email" class="w-full border border-slate-300 rounded-lg p-2 text-slate-900 focus:ring-blue-500" placeholder="billing@client.com" />
+              </div>
+
+              <div>
+                <label for="inv-cust-state" class="block font-semibold text-slate-700 mb-1">State & State Code</label>
+                <select id="inv-cust-state" class="w-full border border-slate-300 rounded-lg p-2 text-slate-900 bg-white focus:ring-blue-500">
+                  <!-- Populated via JS -->
+                </select>
+              </div>
+
+              <div class="sm:col-span-2 md:col-span-3">
+                <label for="inv-cust-address" class="block font-semibold text-slate-700 mb-1">Billing & Shipping Address</label>
+                <input type="text" id="inv-cust-address" class="w-full border border-slate-300 rounded-lg p-2 text-slate-900 focus:ring-blue-500" placeholder="Door No, Street, Landmark, City & Pincode" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 3: Itemized Product / Service Table -->
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="p-4 sm:px-6 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <h3 class="font-bold text-slate-900 text-sm flex items-center">
+                  <i data-lucide="package" class="w-4 h-4 mr-2 text-blue-600"></i> Product & Services Table
+                </h3>
+                <p class="text-xs text-slate-400">All prices and rates calculate dynamically per row</p>
+              </div>
+              <button id="add-item-btn" type="button" class="inline-flex items-center px-3 py-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm">
+                <i data-lucide="plus" class="w-3.5 h-3.5 mr-1"></i> Add Item
+              </button>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left">
+                <thead class="bg-slate-50 text-[10px] font-bold uppercase text-slate-600 border-b border-slate-200">
+                  <tr>
+                    <th class="py-2.5 px-2 text-center w-8">#</th>
+                    <th class="py-2.5 px-2 min-w-[200px]">Item / Service Description *</th>
+                    <th class="py-2.5 px-2 w-24">HSN / SAC</th>
+                    <th class="py-2.5 px-2 w-28 text-center">Qty & Unit</th>
+                    <th class="py-2.5 px-2 w-28 text-right">Rate (₹)</th>
+                    <th class="py-2.5 px-2 w-24 text-center">Discount</th>
+                    <th class="py-2.5 px-2 w-28 text-right">Taxable (₹)</th>
+                    <th class="py-2.5 px-2 w-20 text-center">GST %</th>
+                    <th class="py-2.5 px-2 w-24 text-right">GST (₹)</th>
+                    <th class="py-2.5 px-2 w-28 text-right">Total (₹)</th>
+                    <th class="py-2.5 px-2 text-center w-16">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="invoice-items-body" class="divide-y divide-slate-100">
+                  <!-- Dynamically rendered rows -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Card 4: Summary, Indian Words & Totals -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- Left: Notes, Terms, and Amount in Words (7 cols) -->
+            <div class="lg:col-span-7 space-y-4">
+              <!-- Amount in words highlight -->
+              <div class="bg-blue-50/70 border border-blue-200 rounded-xl p-4">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-blue-900 block mb-1">Total Amount in Words (Indian Format)</span>
+                <p id="inv-words-display" class="text-sm font-bold text-slate-900 italic leading-snug">
+                  Rupees Zero Only
+                </p>
+              </div>
+
+              <!-- Payment Method & Bank Info -->
+              <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm text-xs space-y-3">
+                <div class="flex items-center justify-between">
+                  <h4 class="font-bold text-slate-900">Payment & Bank Details</h4>
+                  <div class="flex items-center space-x-2">
+                    <label for="inv-payment-method" class="text-slate-500">Method:</label>
+                    <select id="inv-payment-method" class="border border-slate-300 rounded px-2 py-1 bg-white font-medium">
+                      <option value="Bank Transfer">Bank Transfer (NEFT/RTGS/IMPS)</option>
+                      <option value="UPI">UPI</option>
+                      <option value="Cash">Cash</option>
+                      <option value="Cheque">Cheque</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 text-slate-600 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                  <div>Bank details pre-loaded from Settings. UPI QR Code will be printed on invoice automatically.</div>
+                  <div class="text-right">
+                    <button type="button" class="text-blue-600 hover:text-blue-800 font-semibold" onclick="window.gstApp.navigateTo('settings')">
+                      Edit Bank & UPI &rarr;
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Terms & Notes -->
+              <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm text-xs space-y-3">
+                <div>
+                  <label for="inv-payment-terms" class="block font-semibold text-slate-700 mb-1">Terms & Conditions</label>
+                  <textarea id="inv-payment-terms" rows="2" class="w-full border border-slate-300 rounded-lg p-2 text-slate-900 focus:ring-blue-500"></textarea>
+                </div>
+                <div>
+                  <label for="inv-notes" class="block font-semibold text-slate-700 mb-1">Invoice Notes / Customer Remarks</label>
+                  <textarea id="inv-notes" rows="2" class="w-full border border-slate-300 rounded-lg p-2 text-slate-900 focus:ring-blue-500" placeholder="Thank you for your business!"></textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Exact Totals Breakdown (5 cols) -->
+            <div class="lg:col-span-5 bg-white rounded-xl border border-slate-200 p-5 shadow-sm space-y-3 text-xs">
+              <h4 class="font-bold text-slate-900 text-sm border-b border-slate-100 pb-2">Invoice Totals Summary</h4>
+
+              <div class="flex justify-between items-center text-slate-600">
+                <span>Subtotal (Gross Amount):</span>
+                <span id="inv-subtotal-display" class="font-medium text-slate-800">₹0.00</span>
+              </div>
+
+              <div class="flex justify-between items-center text-slate-600">
+                <span>Total Line Discounts:</span>
+                <span id="inv-discount-display" class="font-medium text-rose-600">-₹0.00</span>
+              </div>
+
+              <div class="flex justify-between items-center text-slate-800 font-bold border-t border-slate-100 pt-2">
+                <span>Total Taxable Value:</span>
+                <span id="inv-taxable-display">₹0.00</span>
+              </div>
+
+              <!-- Intra-State Tax Split -->
+              <div id="inv-intra-tax-summary" class="space-y-1.5 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                <div class="flex justify-between items-center text-slate-700">
+                  <span>Central Tax (CGST):</span>
+                  <span id="inv-cgst-display" class="font-semibold text-slate-900">₹0.00</span>
+                </div>
+                <div class="flex justify-between items-center text-slate-700">
+                  <span>State Tax (SGST):</span>
+                  <span id="inv-sgst-display" class="font-semibold text-slate-900">₹0.00</span>
+                </div>
+              </div>
+
+              <!-- Inter-State Tax Split -->
+              <div id="inv-inter-tax-summary" class="hidden space-y-1.5 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                <div class="flex justify-between items-center text-slate-700">
+                  <span>Integrated Tax (IGST):</span>
+                  <span id="inv-igst-display" class="font-semibold text-slate-900">₹0.00</span>
+                </div>
+              </div>
+
+              <div class="flex justify-between items-center text-blue-700 font-semibold border-t border-slate-100 pt-2">
+                <span>Total GST Amount:</span>
+                <span id="inv-total-gst-display">₹0.00</span>
+              </div>
+
+              <div class="flex justify-between items-center text-slate-500 text-[11px]">
+                <span>Round-off Adjustment:</span>
+                <span id="inv-roundoff-display">₹0.00</span>
+              </div>
+
+              <!-- Grand Total -->
+              <div class="border-t-2 border-slate-900 pt-3 mt-2 flex justify-between items-center bg-blue-50/60 p-3 rounded-xl">
+                <div>
+                  <span class="block text-xs font-bold text-slate-900 uppercase tracking-wider">Grand Total</span>
+                  <span class="text-[10px] text-slate-500">Including all taxes</span>
+                </div>
+                <span id="inv-grand-total-display" class="text-xl sm:text-2xl font-black text-blue-900">
+                  ₹0.00
+                </span>
+              </div>
+            </div>
+
+          </div>
+
+        </form>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- VIEW 4: INVOICE HISTORY                                           -->
+      <!-- ================================================================= -->
+      <section id="view-invoices" class="app-view hidden space-y-6">
+        <!-- Header & Action -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <div class="flex items-center space-x-3">
+              <h2 class="text-xl font-bold text-slate-900">Invoices History</h2>
+              <span id="invoices-count-badge" class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">
+                0 invoices
+              </span>
+            </div>
+            <p class="text-xs text-slate-500 mt-0.5">Filter, search, duplicate, print, and download generated GST invoices.</p>
+          </div>
+          <button type="button" class="action-create-invoice inline-flex items-center px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-sm">
+            <i data-lucide="plus" class="w-3.5 h-3.5 mr-1.5"></i> Create New Invoice
+          </button>
+        </div>
+
+        <!-- Filter & Search Toolbar -->
+        <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+            <!-- Search -->
+            <div class="relative">
+              <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5"></i>
+              <input type="text" id="inv-history-search" class="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-blue-500" placeholder="Search Invoice #, Customer, GSTIN..." />
+            </div>
+
+            <!-- Status Filter -->
+            <div>
+              <select id="inv-history-status-filter" class="w-full border border-slate-300 rounded-lg p-2 text-xs bg-white text-slate-800">
+                <option value="all">All Payment Statuses</option>
+                <option value="paid">Paid</option>
+                <option value="pending">Pending</option>
+                <option value="overdue">Overdue</option>
+                <option value="draft">Draft</option>
+              </select>
+            </div>
+
+            <!-- Customer Filter -->
+            <div>
+              <select id="inv-history-customer-filter" class="w-full border border-slate-300 rounded-lg p-2 text-xs bg-white text-slate-800">
+                <option value="all">All Customers</option>
+              </select>
+            </div>
+
+            <!-- Date Range Filter -->
+            <div>
+              <select id="inv-history-date-filter" class="w-full border border-slate-300 rounded-lg p-2 text-xs bg-white text-slate-800">
+                <option value="all">All Dates</option>
+                <option value="today">Today</option>
+                <option value="this_month">This Month</option>
+                <option value="last_month">Last Month</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Invoices Table -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left">
+              <thead class="bg-slate-50 text-[11px] font-semibold uppercase text-slate-500 border-b border-slate-200">
+                <tr>
+                  <th class="py-3 px-4">Invoice #</th>
+                  <th class="py-3 px-4">Customer Details</th>
+                  <th class="py-3 px-4">Dates</th>
+                  <th class="py-3 px-4 text-right">Grand Total</th>
+                  <th class="py-3 px-4 text-center">Tax Type</th>
+                  <th class="py-3 px-4 text-center">Status</th>
+                  <th class="py-3 px-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="invoices-table-body" class="divide-y divide-slate-100">
+                <!-- Dynamically rendered via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- VIEW 5: CUSTOMERS                                                 -->
+      <!-- ================================================================= -->
+      <section id="view-customers" class="app-view hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <h2 class="text-xl font-bold text-slate-900">Customers Directory</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Manage clients, GSTINs, and addresses for instant invoice population.</p>
+          </div>
+          <button id="add-customer-btn" type="button" class="inline-flex items-center px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-sm">
+            <i data-lucide="user-plus" class="w-3.5 h-3.5 mr-1.5"></i> Add New Customer
+          </button>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+          <div class="relative max-w-md">
+            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5"></i>
+            <input type="text" id="customers-search" class="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-blue-500" placeholder="Search customer by name, business, GSTIN, phone..." />
+          </div>
+        </div>
+
+        <!-- Customer Cards Grid -->
+        <div id="customers-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- Injected via JS -->
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- VIEW 6: SETTINGS                                                  -->
+      <!-- ================================================================= -->
+      <section id="view-settings" class="app-view hidden space-y-6 max-w-4xl mx-auto">
+        <div>
+          <h2 class="text-xl font-bold text-slate-900">Business & Invoicing Settings</h2>
+          <p class="text-xs text-slate-500 mt-0.5">Configure your business profile, GSTIN, logo, bank account, and invoice defaults.</p>
+        </div>
+
+        <form id="settings-form" class="space-y-6">
+          
+          <!-- Business Profile Card -->
+          <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm space-y-4">
+            <h3 class="font-bold text-slate-900 text-sm border-b border-slate-100 pb-2 flex items-center">
+              <i data-lucide="building-2" class="w-4 h-4 mr-2 text-blue-600"></i> Business Information (Seller)
+            </h3>
+
+            <!-- Logo Upload -->
+            <div class="flex items-center space-x-4">
+              <div class="w-16 h-16 rounded-xl border-2 border-dashed border-slate-300 flex items-center justify-center bg-slate-50 overflow-hidden relative">
+                <img id="settings-logo-preview" src="" alt="Preview" class="w-full h-full object-contain hidden" />
+                <i data-lucide="image" class="w-6 h-6 text-slate-400"></i>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Company Logo</label>
+                <div class="flex items-center space-x-2">
+                  <label class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg cursor-pointer transition-colors">
+                    Upload Logo
+                    <input type="file" id="settings-logo-input" accept="image/*" class="hidden" />
+                  </label>
+                  <button type="button" id="settings-remove-logo" class="text-xs text-rose-600 hover:underline hidden">
+                    Remove
+                  </button>
+                </div>
+                <p class="text-[10px] text-slate-400 mt-1">PNG, JPG, or SVG up to 2MB. Appears at top of A4 invoice.</p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+              <div>
+                <label for="set-business-name" class="block font-semibold text-slate-700 mb-1">Legal Business Name *</label>
+                <input type="text" id="set-business-name" class="w-full border border-slate-300 rounded-lg p-2 font-semibold text-slate-900" required />
+              </div>
+
+              <div>
+                <label for="set-trade-name" class="block font-semibold text-slate-700 mb-1">Trade Name / Brand</label>
+                <input type="text" id="set-trade-name" class="w-full border border-slate-300 rounded-lg p-2 text-slate-900" />
+              </div>
+
+              <div>
+                <label for="set-gstin" class="block font-semibold text-slate-700 mb-1">Seller GSTIN * (15 Digits)</label>
+                <input type="text" id="set-gstin" maxlength="15" class="w-full border border-slate-300 rounded-lg p-2 font-mono uppercase font-semibold text-slate-900" required />
+              </div>
+
+              <div>
+                <label for="set-pan" class="block font-semibold text-slate-700 mb-1">PAN Number</label>
+                <input type="text" id="set-pan" maxlength="10" class="w-full border border-slate-300 rounded-lg p-2 font-mono uppercase text-slate-900" />
+              </div>
+
+              <div>
+                <label for="set-phone" class="block font-semibold text-slate-700 mb-1">Phone Number</label>
+                <input type="tel" id="set-phone" class="w-full border border-slate-300 rounded-lg p-2 text-slate-900" />
+              </div>
+
+              <div>
+                <label for="set-email" class="block font-semibold text-slate-700 mb-1">Email Address</label>
+                <input type="email" id="set-email" class="w-full border border-slate-300 rounded-lg p-2 text-slate-900" />
+              </div>
+
+              <div class="sm:col-span-2">
+                <label for="set-address" class="block font-semibold text-slate-700 mb-1">Registered Business Address</label>
+                <input type="text" id="set-address" class="w-full border border-slate-300 rounded-lg p-2 text-slate-900" />
+              </div>
+
+              <div>
+                <label for="set-city" class="block font-semibold text-slate-700 mb-1">City</label>
+                <input type="text" id="set-city" class="w-full border border-slate-300 rounded-lg p-2 text-slate-900" />
+              </div>
+
+              <div>
+                <label for="set-state" class="block font-semibold text-slate-700 mb-1">State & State Code *</label>
+                <select id="set-state" class="w-full border border-slate-300 rounded-lg p-2 text-slate-900 bg-white" required>
+                  <!-- Populated via JS -->
+                </select>
+              </div>
+
+              <div>
+                <label for="set-pincode" class="block font-semibold text-slate-700 mb-1">Pincode</label>
+                <input type="text" id="set-pincode" class="w-full border border-slate-300 rounded-lg p-2 text-slate-900" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Bank & UPI Details Card -->
+          <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm space-y-4">
+            <h3 class="font-bold text-slate-900 text-sm border-b border-slate-100 pb-2 flex items-center">
+              <i data-lucide="landmark" class="w-4 h-4 mr-2 text-blue-600"></i> Bank & UPI Payment Configuration
+            </h3>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+              <div>
+                <label for="set-bank-name" class="block font-semibold text-slate-700 mb-1">Bank Name</label>
+                <input type="text" id="set-bank-name" class="w-full border border-slate-300 rounded-lg p-2 text-slate-900" />
+              </div>
+
+              <div>
+                <label for="set-account-number" class="block font-semibold text-slate-700 mb-1">Account Number</label>
+                <input type="text" id="set-account-number" class="w-full border border-slate-300 rounded-lg p-2 font-mono text-slate-900" />
+              </div>
+
+              <div>
+                <label for="set-account-holder" class="block font-semibold text-slate-700 mb-1">Account Holder Name</label>
+                <input type="text" id="set-account-holder" class="w-full border border-slate-300 rounded-lg p-2 text-slate-900" />
+              </div>
+
+              <div>
+                <label for="set-ifsc" class="block font-semibold text-slate-700 mb-1">IFSC Code (11 Digits)</label>
+                <input type="text" id="set-ifsc" maxlength="11" class="w-full border border-slate-300 rounded-lg p-2 font-mono uppercase text-slate-900" />
+              </div>
+
+              <div>
+                <label for="set-branch" class="block font-semibold text-slate-700 mb-1">Branch Name</label>
+                <input type="text" id="set-branch" class="w-full border border-slate-300 rounded-lg p-2 text-slate-900" />
+              </div>
+
+              <div>
+                <label for="set-upi-id" class="block font-semibold text-slate-700 mb-1">UPI ID (VPA for QR Code)</label>
+                <input type="text" id="set-upi-id" class="w-full border border-slate-300 rounded-lg p-2 font-mono text-slate-900" placeholder="e.g. business@okhdfcbank" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Invoice Numbering & Terms Card -->
+          <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm space-y-4">
+            <h3 class="font-bold text-slate-900 text-sm border-b border-slate-100 pb-2 flex items-center">
+              <i data-lucide="sliders" class="w-4 h-4 mr-2 text-blue-600"></i> Invoice Automation & Defaults
+            </h3>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+              <div>
+                <label for="set-invoice-prefix" class="block font-semibold text-slate-700 mb-1">Invoice Prefix</label>
+                <input type="text" id="set-invoice-prefix" class="w-full border border-slate-300 rounded-lg p-2 font-mono text-slate-900" value="INV-2026-" />
+              </div>
+
+              <div>
+                <label for="set-next-number" class="block font-semibold text-slate-700 mb-1">Next Invoice Sequence #</label>
+                <input type="number" id="set-next-number" class="w-full border border-slate-300 rounded-lg p-2 font-mono text-slate-900" value="1004" min="1" />
+              </div>
+
+              <div>
+                <label for="set-default-gst-rate" class="block font-semibold text-slate-700 mb-1">Default GST Rate (%)</label>
+                <select id="set-default-gst-rate" class="w-full border border-slate-300 rounded-lg p-2 text-slate-900 bg-white">
+                  <option value="0">0%</option>
+                  <option value="5">5%</option>
+                  <option value="12">12%</option>
+                  <option value="18" selected>18%</option>
+                  <option value="28">28%</option>
+                </select>
+              </div>
+
+              <div>
+                <label for="set-default-due-days" class="block font-semibold text-slate-700 mb-1">Default Due Days</label>
+                <input type="number" id="set-default-due-days" class="w-full border border-slate-300 rounded-lg p-2 text-slate-900" value="15" min="0" />
+              </div>
+
+              <div class="sm:col-span-2 md:col-span-4">
+                <label for="set-terms" class="block font-semibold text-slate-700 mb-1">Default Terms & Conditions</label>
+                <textarea id="set-terms" rows="2" class="w-full border border-slate-300 rounded-lg p-2 text-slate-900"></textarea>
+              </div>
+
+              <div class="sm:col-span-2 md:col-span-4">
+                <label for="set-notes" class="block font-semibold text-slate-700 mb-1">Default Invoice Notes</label>
+                <textarea id="set-notes" rows="2" class="w-full border border-slate-300 rounded-lg p-2 text-slate-900"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- Backup & Data Management Card -->
+          <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm space-y-4">
+            <h3 class="font-bold text-slate-900 text-sm border-b border-slate-100 pb-2 flex items-center">
+              <i data-lucide="database" class="w-4 h-4 mr-2 text-blue-600"></i> Backup, Restore & Demo Data
+            </h3>
+
+            <div class="flex flex-wrap items-center gap-3">
+              <button id="settings-export-data" type="button" class="inline-flex items-center px-3.5 py-2 text-xs font-semibold border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 rounded-lg shadow-sm">
+                <i data-lucide="download" class="w-3.5 h-3.5 mr-1.5"></i> Export Backup (JSON)
+              </button>
+
+              <label class="inline-flex items-center px-3.5 py-2 text-xs font-semibold border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 rounded-lg shadow-sm cursor-pointer">
+                <i data-lucide="upload" class="w-3.5 h-3.5 mr-1.5"></i> Import Backup (JSON)
+                <input type="file" id="settings-import-file" accept=".json" class="hidden" />
+              </label>
+
+              <a href="GST_Invoice_Pro.zip" download="GST_Invoice_Pro.zip" class="inline-flex items-center px-3.5 py-2 text-xs font-semibold border border-blue-300 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg shadow-sm transition-colors">
+                <i data-lucide="archive" class="w-3.5 h-3.5 mr-1.5 text-blue-600"></i> Download Full App (.ZIP)
+              </a>
+
+              <button id="settings-reset-demo" type="button" class="inline-flex items-center px-3.5 py-2 text-xs font-semibold border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg shadow-sm">
+                <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 mr-1.5"></i> Reset to Demo Data
+              </button>
+            </div>
+          </div>
+
+          <div class="flex justify-end pt-2">
+            <button type="submit" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg shadow-sm shadow-blue-500/20">
+              Save Settings
+            </button>
+          </div>
+        </form>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- =================================================================== -->
+  <!-- MODAL: LIVE A4 INVOICE PREVIEW                                      -->
+  <!-- =================================================================== -->
+  <div id="preview-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex flex-col justify-between hidden modal-backdrop-animate overflow-y-auto p-4 sm:p-6">
+    <div class="max-w-4xl w-full mx-auto bg-white rounded-2xl shadow-2xl flex flex-col max-h-[92vh] overflow-hidden my-auto">
+      
+      <!-- Modal Header -->
+      <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50 flex-shrink-0">
+        <div class="flex items-center space-x-2">
+          <i data-lucide="printer" class="w-5 h-5 text-blue-600"></i>
+          <h3 class="font-bold text-slate-900 text-sm">Tax Invoice Print & PDF Preview</h3>
+        </div>
+        
+        <div class="flex items-center space-x-2">
+          <button id="preview-modal-print" type="button" class="px-3 py-1.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 text-xs font-semibold rounded-lg shadow-sm flex items-center">
+            <i data-lucide="printer" class="w-3.5 h-3.5 mr-1.5"></i> Print
+          </button>
+          <button id="preview-modal-download" type="button" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-sm flex items-center">
+            <i data-lucide="download" class="w-3.5 h-3.5 mr-1.5"></i> Download PDF
+          </button>
+          <button id="preview-modal-close" type="button" class="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-200">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Modal Body: Scrollable A4 Paper Container -->
+      <div class="flex-1 overflow-y-auto p-4 sm:p-8 bg-slate-100 flex justify-center">
+        <div id="preview-modal-content" class="w-full">
+          <!-- Dynamically populated with A4 sheet HTML -->
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- =================================================================== -->
+  <!-- MODAL: ADD / EDIT CUSTOMER                                          -->
+  <!-- =================================================================== -->
+  <div id="customer-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 hidden modal-backdrop-animate">
+    <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-lg overflow-hidden">
+      
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+        <h3 id="customer-modal-title" class="font-bold text-slate-900 text-sm">Add New Customer</h3>
+        <button id="customer-modal-cancel" type="button" class="p-1 text-slate-400 hover:text-slate-700 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="customer-form" class="p-6 space-y-4 text-xs">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Customer / Contact Name *</label>
+            <input type="text" id="modal-cust-name" class="w-full border border-slate-300 rounded-lg p-2 text-slate-900" required />
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Business Name</label>
+            <input type="text" id="modal-cust-business" class="w-full border border-slate-300 rounded-lg p-2 text-slate-900" />
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Customer GSTIN</label>
+            <input type="text" id="modal-cust-gstin" maxlength="15" class="w-full border border-slate-300 rounded-lg p-2 font-mono uppercase text-slate-900" placeholder="15-character GSTIN" />
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Phone Number</label>
+            <input type="tel" id="modal-cust-phone" class="w-full border border-slate-300 rounded-lg p-2 text-slate-900" />
+          </div>
+
+          <div class="sm:col-span-2">
+            <label class="block font-semibold text-slate-700 mb-1">Email Address</label>
+            <input type="email" id="modal-cust-email" class="w-full border border-slate-300 rounded-lg p-2 text-slate-900" />
+          </div>
+
+          <div class="sm:col-span-2">
+            <label class="block font-semibold text-slate-700 mb-1">Address</label>
+            <input type="text" id="modal-cust-address" class="w-full border border-slate-300 rounded-lg p-2 text-slate-900" />
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">City</label>
+            <input type="text" id="modal-cust-city" class="w-full border border-slate-300 rounded-lg p-2 text-slate-900" />
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">State</label>
+            <select id="modal-cust-state" class="w-full border border-slate-300 rounded-lg p-2 text-slate-900 bg-white">
+              <option value="">Select State</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Pincode</label>
+            <input type="text" id="modal-cust-pincode" class="w-full border border-slate-300 rounded-lg p-2 text-slate-900" />
+          </div>
+        </div>
+
+        <div class="flex justify-end space-x-2 pt-3 border-t border-slate-100">
+          <button type="button" onclick="window.gstApp.customers.closeModal()" class="px-4 py-2 border border-slate-300 rounded-lg text-slate-700 font-semibold text-xs">
+            Cancel
+          </button>
+          <button type="submit" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-xs">
+            Save Customer
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- Mobile Native Bottom Navigation Bar (Visible on phones & tablets) -->
+  <nav id="mobile-bottom-nav" class="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 px-3 py-2 flex items-center justify-around shadow-[0_-4px_16px_rgba(0,0,0,0.06)] pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+    <button type="button" class="flex flex-col items-center justify-center p-1 text-blue-600 transition-colors" data-nav-target="dashboard">
+      <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+      <span class="text-[10px] font-semibold mt-0.5">Home</span>
+    </button>
+    <button type="button" class="flex flex-col items-center justify-center p-1 text-slate-500 hover:text-slate-800 transition-colors" data-nav-target="calculator">
+      <i data-lucide="calculator" class="w-5 h-5"></i>
+      <span class="text-[10px] font-semibold mt-0.5">GST Calc</span>
+    </button>
+    <button type="button" class="action-create-invoice flex flex-col items-center justify-center -mt-5 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-3.5 shadow-lg shadow-blue-500/40 active:scale-95 transition-transform" title="Create Invoice">
+      <i data-lucide="plus" class="w-5 h-5"></i>
+    </button>
+    <button type="button" class="flex flex-col items-center justify-center p-1 text-slate-500 hover:text-slate-800 transition-colors" data-nav-target="invoices">
+      <i data-lucide="file-text" class="w-5 h-5"></i>
+      <span class="text-[10px] font-semibold mt-0.5">Invoices</span>
+    </button>
+    <button type="button" class="flex flex-col items-center justify-center p-1 text-slate-500 hover:text-slate-800 transition-colors" data-nav-target="settings">
+      <i data-lucide="settings" class="w-5 h-5"></i>
+      <span class="text-[10px] font-semibold mt-0.5">Settings</span>
+    </button>
+  </nav>
+
+  <!-- Dedicated Print Area (Shown ONLY when printing via @media print) -->
+  <div id="print-area" class="hidden"></div>
+
+  <!-- Toast Notification Hub -->
+  <div id="toast-container" class="fixed bottom-20 lg:bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none max-w-sm w-full"></div>
+
+  <!-- Application Bootstrap -->
+  <script src="script.js"></script>
+</body>
+</html>
